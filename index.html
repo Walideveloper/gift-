@@ -1,186 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zunaira Api Heart Puzzle 💖</title>
-  <style>
-    body {
-      background: #222;
-      color: white;
-      text-align: center;
-      font-family: 'Poppins', sans-serif;
-      overflow: hidden;
-    }
-    #gameCanvas {
-      background: #333;
-      border-radius: 10px;
-      margin-top: 30px;
-      box-shadow: 0 0 15px rgba(255,0,0,0.3);
-    }
-    button {
-      margin-top: 20px;
-      padding: 12px 24px;
-      background: crimson;
-      border: none;
-      color: white;
-      font-size: 18px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover { background-color: #ff3366; }
-    h1 { font-size: 30px; margin-top: 20px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Give Me A Gift - Puzzle for Zunaira Api 💖</title>
+<style>
+  body {
+    margin: 0;
+    background: radial-gradient(circle at center, #1a1a1a, #000);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+  }
+
+  h1 {
+    margin-bottom: 10px;
+    font-size: 28px;
+    color: #ffcccc;
+  }
+
+  canvas {
+    background: #222;
+    border-radius: 10px;
+    box-shadow: 0 0 25px rgba(255,0,0,0.5);
+  }
+
+  button {
+    margin-top: 20px;
+    padding: 12px 25px;
+    background: crimson;
+    border: none;
+    color: white;
+    font-size: 18px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #ff4d4d;
+  }
+</style>
 </head>
 <body>
-  <h1>💔 Arrange the Heart for Zunaira Api 💔</h1>
-  <canvas id="gameCanvas" width="400" height="400"></canvas>
-  <br>
+  <h1>🧩 Arrange the Letters to Spell "Give Me A Gift"</h1>
+  <canvas id="puzzle" width="700" height="300"></canvas>
   <button onclick="resetPuzzle()">Reset Puzzle</button>
 
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+<script>
+const canvas = document.getElementById('puzzle');
+const ctx = canvas.getContext('2d');
 
-    const targetPositions = [
-      {x:150, y:100}, {x:250, y:100},
-      {x:100, y:200}, {x:200, y:200}, {x:300, y:200},
-      {x:150, y:300}, {x:250, y:300}
-    ];
+let pieces = [];
+let dragging = null;
+let offsetX = 0, offsetY = 0;
+let completed = false;
 
-    const pieces = [];
-    let draggingPiece = null;
-    let offsetX = 0, offsetY = 0;
-    let completed = false;
+const targetText = "GIVE ME A GIFT";
+const targetPositions = [];
+const startX = 80;
+const startY = 130;
+const spacing = 45;
 
-    function createPuzzle() {
-      pieces.length = 0;
-      for (let t of targetPositions) {
-        pieces.push({
-          x: Math.random() * 280 + 50,
-          y: Math.random() * 150 + 150,
-          target: t,
-          placed: false
-        });
-      }
+for (let i = 0; i < targetText.length; i++) {
+  if (targetText[i] === " ") continue;
+  targetPositions.push({
+    char: targetText[i],
+    x: startX + i * spacing,
+    y: startY
+  });
+}
+
+function createPieces() {
+  pieces = targetPositions.map(t => ({
+    ...t,
+    x: Math.random() * 500 + 50,
+    y: Math.random() * 150 + 100,
+    placed: false
+  }));
+}
+
+function drawTextPiece(x, y, text, color="red") {
+  ctx.save();
+  ctx.font = "bold 40px Poppins";
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Hint outline
+  ctx.font = "bold 40px Poppins";
+  ctx.fillStyle = "rgba(255,0,0,0.15)";
+  let x = startX;
+  for (let ch of targetText) {
+    if (ch !== " ") ctx.fillText(ch, x, startY);
+    x += spacing;
+  }
+
+  // Pieces
+  for (let p of pieces) drawTextPiece(p.x, p.y, p.char);
+
+  if (completed) {
+    ctx.font = "bold 50px Poppins";
+    ctx.fillStyle = "pink";
+    ctx.fillText("💖 Zunaira Api 💖", 180, 150);
+  }
+}
+
+canvas.onmousedown = e => {
+  const mx = e.offsetX, my = e.offsetY;
+  for (let p of pieces) {
+    if (mx > p.x && mx < p.x + 30 && my > p.y - 40 && my < p.y) {
+      dragging = p;
+      offsetX = mx - p.x;
+      offsetY = my - p.y;
+      break;
     }
+  }
+};
 
-    function drawHeartShape(x, y, scale=1, color="rgba(255,0,0,0.15)", fill=false) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.scale(scale, scale);
-      ctx.beginPath();
-      ctx.moveTo(0, -30);
-      ctx.bezierCurveTo(0, -80, 100, -80, 100, -30);
-      ctx.bezierCurveTo(100, 20, 50, 60, 0, 100);
-      ctx.bezierCurveTo(-50, 60, -100, 20, -100, -30);
-      ctx.bezierCurveTo(-100, -80, 0, -80, 0, -30);
-      ctx.closePath();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = color;
-      if (fill) ctx.fillStyle = "red", ctx.fill();
-      ctx.stroke();
-      ctx.restore();
+canvas.onmousemove = e => {
+  if (dragging) {
+    dragging.x = e.offsetX - offsetX;
+    dragging.y = e.offsetY - offsetY;
+  }
+};
+
+canvas.onmouseup = () => {
+  if (dragging) {
+    const t = targetPositions.find(tp => tp.char === dragging.char && !tp.used);
+    if (t && Math.abs(dragging.x - t.x) < 20 && Math.abs(dragging.y - t.y) < 20) {
+      dragging.x = t.x;
+      dragging.y = t.y;
+      dragging.placed = true;
+      t.used = true;
     }
+    dragging = null;
+    checkCompletion();
+  }
+};
 
-    function drawHeartPiece(x, y) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.beginPath();
-      ctx.moveTo(0, -25);
-      ctx.bezierCurveTo(0, -60, 50, -60, 50, -25);
-      ctx.bezierCurveTo(50, 20, 0, 40, 0, 70);
-      ctx.bezierCurveTo(0, 40, -50, 20, -50, -25);
-      ctx.bezierCurveTo(-50, -60, 0, -60, 0, -25);
-      ctx.closePath();
-      ctx.fillStyle = "red";
-      ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "darkred";
-      ctx.stroke();
-      ctx.restore();
+function checkCompletion() {
+  if (pieces.every(p => p.placed)) {
+    completed = true;
+    setTimeout(blastEffect, 800);
+  }
+}
+
+function blastEffect() {
+  let frames = 0;
+  const blast = setInterval(() => {
+    for (let p of pieces) {
+      p.x += (Math.random() - 0.5) * 50;
+      p.y += (Math.random() - 0.5) * 50;
     }
+    draw();
+    if (++frames > 15) clearInterval(blast);
+  }, 80);
+}
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+function resetPuzzle() {
+  completed = false;
+  targetPositions.forEach(tp => delete tp.used);
+  createPieces();
+  draw();
+}
 
-      // faint heart outline hint
-      ctx.save();
-      ctx.translate(200, 200);
-      drawHeartShape(0, 0, 1.5, "rgba(255,0,0,0.25)");
-      ctx.restore();
-
-      // pieces
-      for (let p of pieces) drawHeartPiece(p.x, p.y);
-
-      if (completed) {
-        ctx.fillStyle = "pink";
-        ctx.font = "28px Poppins";
-        ctx.fillText("💖 Zunaira Api 💖", 105, 210);
-      }
-    }
-
-    function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
-
-    canvas.onmousedown = e=>{
-      const m={x:e.offsetX,y:e.offsetY};
-      for(let p of pieces){
-        if(distance(m,{x:p.x,y:p.y})<50){
-          draggingPiece=p;
-          offsetX=m.x-p.x;
-          offsetY=m.y-p.y;
-          break;
-        }
-      }
-    }
-
-    canvas.onmousemove = e=>{
-      if(draggingPiece){
-        draggingPiece.x=e.offsetX-offsetX;
-        draggingPiece.y=e.offsetY-offsetY;
-      }
-    }
-
-    canvas.onmouseup = e=>{
-      if(draggingPiece){
-        const t=draggingPiece.target;
-        if(Math.abs(draggingPiece.x-t.x)<20 && Math.abs(draggingPiece.y-t.y)<20){
-          draggingPiece.x=t.x;
-          draggingPiece.y=t.y;
-          draggingPiece.placed=true;
-        }
-        draggingPiece=null;
-        checkComplete();
-      }
-    }
-
-    function checkComplete(){
-      if(pieces.every(p=>p.placed)){
-        completed=true;
-        setTimeout(blastHeart,800);
-      }
-    }
-
-    function blastHeart(){
-      let frames=0;
-      const blast=setInterval(()=>{
-        for(let p of pieces){
-          p.x+=(Math.random()-0.5)*25;
-          p.y+=(Math.random()-0.5)*25;
-        }
-        draw();
-        if(++frames>20){clearInterval(blast);draw();}
-      },50);
-    }
-
-    function resetPuzzle(){
-      completed=false;
-      createPuzzle();
-      draw();
-    }
-
-    createPuzzle();
-    setInterval(draw,60);
-  </script>
+createPieces();
+setInterval(draw, 60);
+</script>
 </body>
 </html>
