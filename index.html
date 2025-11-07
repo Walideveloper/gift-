@@ -3,24 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Heart Puzzle - Zunaira Api 💖</title>
+  <title>Zunaira Api Heart Puzzle 💖</title>
   <style>
     body {
-      background-color: #222;
+      background: #222;
       color: white;
       text-align: center;
       font-family: 'Poppins', sans-serif;
       overflow: hidden;
     }
     #gameCanvas {
-      background-color: #333;
+      background: #333;
       border-radius: 10px;
       margin-top: 30px;
+      box-shadow: 0 0 15px rgba(255,0,0,0.3);
     }
     button {
       margin-top: 20px;
       padding: 12px 24px;
-      background-color: crimson;
+      background: crimson;
       border: none;
       color: white;
       font-size: 18px;
@@ -28,10 +29,7 @@
       cursor: pointer;
     }
     button:hover { background-color: #ff3366; }
-    h1 {
-      font-size: 32px;
-      margin-top: 20px;
-    }
+    h1 { font-size: 30px; margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -44,39 +42,56 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    const pieces = [];
-    const size = 100; // each piece size
     const targetPositions = [
       {x:150, y:100}, {x:250, y:100},
       {x:100, y:200}, {x:200, y:200}, {x:300, y:200},
       {x:150, y:300}, {x:250, y:300}
     ];
 
+    const pieces = [];
     let draggingPiece = null;
     let offsetX = 0, offsetY = 0;
     let completed = false;
 
     function createPuzzle() {
       pieces.length = 0;
-      for (let i = 0; i < targetPositions.length; i++) {
+      for (let t of targetPositions) {
         pieces.push({
-          x: Math.random() * 300 + 20,
-          y: Math.random() * 200 + 150,
-          target: targetPositions[i],
+          x: Math.random() * 280 + 50,
+          y: Math.random() * 150 + 150,
+          target: t,
           placed: false
         });
       }
     }
 
-    function drawHeartPiece(x, y, index) {
+    function drawHeartShape(x, y, scale=1, color="rgba(255,0,0,0.15)", fill=false) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+      ctx.beginPath();
+      ctx.moveTo(0, -30);
+      ctx.bezierCurveTo(0, -80, 100, -80, 100, -30);
+      ctx.bezierCurveTo(100, 20, 50, 60, 0, 100);
+      ctx.bezierCurveTo(-50, 60, -100, 20, -100, -30);
+      ctx.bezierCurveTo(-100, -80, 0, -80, 0, -30);
+      ctx.closePath();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = color;
+      if (fill) ctx.fillStyle = "red", ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawHeartPiece(x, y) {
       ctx.save();
       ctx.translate(x, y);
       ctx.beginPath();
-      ctx.moveTo(50, 30);
-      ctx.bezierCurveTo(50, 0, 100, 0, 100, 30);
-      ctx.bezierCurveTo(100, 60, 50, 80, 50, 100);
-      ctx.bezierCurveTo(50, 80, 0, 60, 0, 30);
-      ctx.bezierCurveTo(0, 0, 50, 0, 50, 30);
+      ctx.moveTo(0, -25);
+      ctx.bezierCurveTo(0, -60, 50, -60, 50, -25);
+      ctx.bezierCurveTo(50, 20, 0, 40, 0, 70);
+      ctx.bezierCurveTo(0, 40, -50, 20, -50, -25);
+      ctx.bezierCurveTo(-50, -60, 0, -60, 0, -25);
       ctx.closePath();
       ctx.fillStyle = "red";
       ctx.fill();
@@ -89,84 +104,83 @@
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      for (let piece of pieces) {
-        drawHeartPiece(piece.x, piece.y);
-      }
+      // faint heart outline hint
+      ctx.save();
+      ctx.translate(200, 200);
+      drawHeartShape(0, 0, 1.5, "rgba(255,0,0,0.25)");
+      ctx.restore();
+
+      // pieces
+      for (let p of pieces) drawHeartPiece(p.x, p.y);
 
       if (completed) {
         ctx.fillStyle = "pink";
         ctx.font = "28px Poppins";
-        ctx.fillText("💖 Zunaira Api 💖", 110, 200);
+        ctx.fillText("💖 Zunaira Api 💖", 105, 210);
       }
     }
 
-    function distance(a, b) {
-      return Math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2);
-    }
+    function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
 
-    canvas.onmousedown = e => {
-      const mouse = {x: e.offsetX, y: e.offsetY};
-      for (let piece of pieces) {
-        if (distance(mouse, {x: piece.x + 50, y: piece.y + 50}) < 50) {
-          draggingPiece = piece;
-          offsetX = mouse.x - piece.x;
-          offsetY = mouse.y - piece.y;
+    canvas.onmousedown = e=>{
+      const m={x:e.offsetX,y:e.offsetY};
+      for(let p of pieces){
+        if(distance(m,{x:p.x,y:p.y})<50){
+          draggingPiece=p;
+          offsetX=m.x-p.x;
+          offsetY=m.y-p.y;
           break;
         }
       }
-    };
+    }
 
-    canvas.onmousemove = e => {
-      if (draggingPiece) {
-        draggingPiece.x = e.offsetX - offsetX;
-        draggingPiece.y = e.offsetY - offsetY;
+    canvas.onmousemove = e=>{
+      if(draggingPiece){
+        draggingPiece.x=e.offsetX-offsetX;
+        draggingPiece.y=e.offsetY-offsetY;
       }
-    };
+    }
 
-    canvas.onmouseup = e => {
-      if (draggingPiece) {
-        const t = draggingPiece.target;
-        if (Math.abs(draggingPiece.x - t.x) < 20 && Math.abs(draggingPiece.y - t.y) < 20) {
-          draggingPiece.x = t.x;
-          draggingPiece.y = t.y;
-          draggingPiece.placed = true;
+    canvas.onmouseup = e=>{
+      if(draggingPiece){
+        const t=draggingPiece.target;
+        if(Math.abs(draggingPiece.x-t.x)<20 && Math.abs(draggingPiece.y-t.y)<20){
+          draggingPiece.x=t.x;
+          draggingPiece.y=t.y;
+          draggingPiece.placed=true;
         }
-        draggingPiece = null;
+        draggingPiece=null;
         checkComplete();
       }
-    };
+    }
 
-    function checkComplete() {
-      if (pieces.every(p => p.placed)) {
-        completed = true;
-        setTimeout(blastHeart, 1000);
+    function checkComplete(){
+      if(pieces.every(p=>p.placed)){
+        completed=true;
+        setTimeout(blastHeart,800);
       }
     }
 
-    function blastHeart() {
-      let count = 0;
-      const blast = setInterval(() => {
-        for (let piece of pieces) {
-          piece.x += (Math.random() - 0.5) * 30;
-          piece.y += (Math.random() - 0.5) * 30;
+    function blastHeart(){
+      let frames=0;
+      const blast=setInterval(()=>{
+        for(let p of pieces){
+          p.x+=(Math.random()-0.5)*25;
+          p.y+=(Math.random()-0.5)*25;
         }
         draw();
-        count++;
-        if (count > 20) {
-          clearInterval(blast);
-          draw();
-        }
-      }, 60);
+        if(++frames>20){clearInterval(blast);draw();}
+      },50);
     }
 
-    function resetPuzzle() {
-      completed = false;
+    function resetPuzzle(){
+      completed=false;
       createPuzzle();
       draw();
     }
 
     createPuzzle();
-    setInterval(draw, 50);
+    setInterval(draw,60);
   </script>
 </body>
 </html>
